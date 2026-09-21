@@ -137,19 +137,19 @@
 
             <!-- Character Selection -->
             <div class="grid grid-cols-4 gap-3 w-full mb-6">
-                <button onclick="selectAvatar('🦁')" class="avatar-option p-3 rounded-2xl border-4 border-brandYellow bg-yellow-50 hover:scale-105 transition flex flex-col items-center">
+                <button onclick="selectAvatar('🦁', event)" class="avatar-option p-3 rounded-2xl border-4 border-brandYellow bg-yellow-50 hover:scale-105 transition flex flex-col items-center">
                     <span class="text-3xl mb-1">🦁</span>
                     <span class="text-xs font-bold font-game text-slate-700">Leo</span>
                 </button>
-                <button onclick="selectAvatar('🐰')" class="avatar-option p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:scale-105 transition flex flex-col items-center">
+                <button onclick="selectAvatar('🐰', event)" class="avatar-option p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:scale-105 transition flex flex-col items-center">
                     <span class="text-3xl mb-1">🐰</span>
                     <span class="text-xs font-bold font-game text-slate-700">Mifi</span>
                 </button>
-                <button onclick="selectAvatar('🐱')" class="avatar-option p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:scale-105 transition flex flex-col items-center">
+                <button onclick="selectAvatar('🐱', event)" class="avatar-option p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:scale-105 transition flex flex-col items-center">
                     <span class="text-3xl mb-1">🐱</span>
                     <span class="text-xs font-bold font-game text-slate-700">Mimi</span>
                 </button>
-                <button onclick="selectAvatar('🐶')" class="avatar-option p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:scale-105 transition flex flex-col items-center">
+                <button onclick="selectAvatar('🐶', event)" class="avatar-option p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:scale-105 transition flex flex-col items-center">
                     <span class="text-3xl mb-1">🐶</span>
                     <span class="text-xs font-bold font-game text-slate-700">Bobi</span>
                 </button>
@@ -337,7 +337,7 @@
                 <p class="text-slate-600 font-semibold text-sm mb-4">Kamu berhasil menyelesaikan tantangan!</p>
 
                 <!-- Stars Earned -->
-                <div class="flex justify-center space-x-3 text-5xl text-amber-400 mb-6" id="result-stars flex">
+                <div class="flex justify-center space-x-3 text-5xl text-amber-400 mb-6">
                     <i id="res-star-1" class="fas fa-star text-slate-200"></i>
                     <i id="res-star-2" class="fas fa-star text-slate-200"></i>
                     <i id="res-star-3" class="fas fa-star text-slate-200"></i>
@@ -357,7 +357,7 @@
 
                 <!-- Modal Actions -->
                 <div class="flex flex-col space-y-3 w-full">
-                    <button onclick="nextLevelOrRepeat()" class="w-full py-3.5 bg-brandGreen hover:bg-emerald-500 text-white font-game text-lg font-bold rounded-2xl border-b-4 border-emerald-700 btn-3d transition">
+                    <button id="btn-next-level" onclick="nextLevelOrRepeat()" class="w-full py-3.5 bg-brandGreen hover:bg-emerald-500 text-white font-game text-lg font-bold rounded-2xl border-b-4 border-emerald-700 btn-3d transition">
                         Lanjut Level Berikutnya 🚀
                     </button>
                     <button onclick="goToLevelSelect()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-game font-bold rounded-2xl transition">
@@ -383,8 +383,17 @@
             currentQuestionData: null
         };
 
-        // Item Emojis used for visual counting
+        // Item Emojis & Dictionary used for visual counting
         const emojiItems = ['🍎', '⭐️', '🎈', '🚗', '🐱', '🐸', '🌼', '🍬', '🦆', '🍓'];
+        
+        function getEmojiName(emoji) {
+            const names = {
+                '🍎': 'apel', '⭐️': 'bintang', '🎈': 'balon', '🚗': 'mobil',
+                '🐱': 'kucing', '🐸': 'katak', '🌼': 'bunga', '🍬': 'permen',
+                '🦆': 'bebek', '🍓': 'stroberi'
+            };
+            return names[emoji] || 'benda';
+        }
 
         /* --- AUDIO SYNTHESIZER (Web Audio API) --- */
         let audioCtx = null;
@@ -423,7 +432,6 @@
                 osc.start(now);
                 osc.stop(now + 0.1);
             } else if (type === 'correct') {
-                // Happy chord fanfare
                 const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
                 notes.forEach((freq, idx) => {
                     const o = audioCtx.createOscillator();
@@ -445,7 +453,6 @@
                 osc.start(now);
                 osc.stop(now + 0.25);
             } else if (type === 'win') {
-                // Victory Fanfare
                 const notes = [440, 554.37, 659.25, 880];
                 notes.forEach((freq, idx) => {
                     const o = audioCtx.createOscillator();
@@ -486,7 +493,7 @@
             }
         }
 
-        function selectAvatar(emoji) {
+        function selectAvatar(emoji, evt) {
             playSound('click');
             gameState.selectedAvatar = emoji;
             document.querySelectorAll('.avatar-option').forEach(btn => {
@@ -494,14 +501,17 @@
                 btn.classList.add('border-slate-200', 'bg-slate-50');
             });
 
-            // Highlight chosen avatar
-            event.currentTarget.classList.remove('border-slate-200', 'bg-slate-50');
-            event.currentTarget.classList.add('border-brandYellow', 'bg-yellow-50');
+            const currentBtn = evt ? evt.currentTarget : event.currentTarget;
+            if (currentBtn) {
+                currentBtn.classList.remove('border-slate-200', 'bg-slate-50');
+                currentBtn.classList.add('border-brandYellow', 'bg-yellow-50');
+            }
 
             document.getElementById('game-mascot-icon').textContent = emoji;
         }
 
         function goToLevelSelect() {
+            document.getElementById('modal-result').classList.add('hidden');
             updateStarsDisplay();
             showScreen('screen-levels');
         }
@@ -535,14 +545,14 @@
             let valB = 0;
             let correctAnswer = 0;
             let equationText = '';
-            let visualType = ''; // 'count', 'add', 'subtract', 'none'
+            let visualType = ''; // 'count', 'add', 'subtract', 'ten-frame', 'missing'
             let subCrossCount = 0;
 
             if (level === 1) {
                 // LEVEL 1: Membilang (1 - 10)
-                correctAnswer = Math.floor(Math.random() * 10) + 1; // 1 - 10
+                correctAnswer = Math.floor(Math.random() * 10) + 1;
                 instruction = `Ada berapa banyak ${getEmojiName(itemEmoji)} di bawah ini? Sentuh untuk menghitung!`;
-                equationText = `Berapa jumlahnya? = <span class="text-brandPink animate-pulse">?</span>`;
+                equationText = `Jumlah = <span class="text-brandPink animate-pulse">?</span>`;
                 visualType = 'count';
             } 
             else if (level === 2) {
@@ -579,303 +589,273 @@
                     instruction = `Hitung pengurangan angka di bawah ini!`;
                     equationText = `${valA} - ${valB} = <span class="text-brandPink animate-pulse">?</span>`;
                 }
-                visualType = 'ten-frame'; // Optional visual helper
+                visualType = 'ten-frame';
             } 
             else if (level === 5) {
-                // LEVEL 5: Tantangan Angka Hilang / Missing Number (e.g. 4 + ? = 9 or 12 - ? = 7)
+                // LEVEL 5: Tantangan Angka Hilang (e.g. 4 + ? = 9 or 12 - ? = 7)
                 const isAddition = Math.random() > 0.4;
                 if (isAddition) {
-                    const total = Math.floor(Math.random() * 10) + 6; // 6 - 15
-                    valA = Math.floor(Math.random() * (total - 2)) + 1;
-                    correctAnswer = total - valA; // The missing number
-                    instruction = `Cari angka yang tepat untuk mengisi tanda tanya ( ❓ ) !`;
-                    equationText = `${valA} + <span class="text-brandPurple font-extrabold underline">?</span> = ${total}`;
+                    valA = Math.floor(Math.random() * 8) + 1; // 1-8
+                    correctAnswer = Math.floor(Math.random() * 8) + 1; // missing number
+                    const result = valA + correctAnswer;
+                    instruction = `Berapa angka rahasia yang tepat di dalam kotak titik-titik?`;
+                    equationText = `${valA} + <span class="text-brandPink bg-pink-100 border-2 border-brandPink px-3 rounded-xl inline-block">?</span> = ${result}`;
                 } else {
-                    valA = Math.floor(Math.random() * 10) + 8; // 8 - 17
-                    correctAnswer = Math.floor(Math.random() * 5) + 2;
-                    const result = valA - correctAnswer;
-                    instruction = `Cari angka yang tepat untuk mengisi tanda tanya ( ❓ ) !`;
-                    equationText = `${valA} - <span class="text-brandPurple font-extrabold underline">?</span> = ${result}`;
+                    correctAnswer = Math.floor(Math.random() * 7) + 1; // missing number
+                    const result = Math.floor(Math.random() * 8) + 1;
+                    valA = result + correctAnswer; // total
+                    instruction = `Berapa angka rahasia yang tepat untuk melengkapi pengurangan?`;
+                    equationText = `${valA} - <span class="text-brandPink bg-pink-100 border-2 border-brandPink px-3 rounded-xl inline-block">?</span> = ${result}`;
                 }
-                visualType = 'none';
+                visualType = 'missing';
             }
 
-            // Generate 4 Multiple Choice Options (1 correct, 3 distractors)
-            const options = new Set();
-            options.add(correctAnswer);
-
-            while (options.size < 4) {
+            // Generate 4 options including correct answer
+            const options = [correctAnswer];
+            while (options.length < 4) {
                 let offset = (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
-                let wrongVal = correctAnswer + offset;
-                if (wrongVal >= 0 && wrongVal <= 25 && wrongVal !== correctAnswer) {
-                    options.add(wrongVal);
+                let wrongOption = correctAnswer + offset;
+                if (wrongOption >= 0 && !options.includes(wrongOption)) {
+                    options.push(wrongOption);
                 }
             }
 
-            const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+            // Shuffle options
+            options.sort(() => Math.random() - 0.5);
 
             return {
                 level,
                 itemEmoji,
                 instruction,
+                equationText,
+                correctAnswer,
+                options,
+                visualType,
                 valA,
                 valB,
-                subCrossCount,
-                correctAnswer,
-                equationText,
-                visualType,
-                options: shuffledOptions
+                subCrossCount
             };
         }
 
-        function getEmojiName(emoji) {
-            const names = {
-                '🍎': 'apel', '⭐️': 'bintang', '🎈': 'balon', '🚗': 'mobil',
-                '🐱': 'kucing', '🐸': 'katak', '🌼': 'bunga', '🍬': 'permen',
-                '🦆': 'bebek', '🍓': 'stroberi'
-            };
-            return names[emoji] || 'benda';
-        }
-
-        /* --- GAMEPLAY FLOW --- */
+        /* --- GAME LOGIC & ENGINE --- */
         function startLevel(lvl) {
             gameState.currentLevel = lvl;
             gameState.currentQuestionIndex = 0;
-            gameState.correctAnswers = 0;
             gameState.score = 0;
+            gameState.correctAnswers = 0;
 
             document.getElementById('level-title-display').textContent = `Level ${lvl}`;
             document.getElementById('total-questions-num').textContent = gameState.totalQuestions;
             document.getElementById('session-stars').textContent = '0';
 
             showScreen('screen-game');
-            loadNextQuestion();
+            loadQuestion();
         }
 
-        function loadNextQuestion() {
-            if (gameState.currentQuestionIndex >= gameState.totalQuestions) {
-                finishLevel();
-                return;
-            }
+        function loadQuestion() {
+            const data = generateQuestion(gameState.currentLevel);
+            gameState.currentQuestionData = data;
 
-            gameState.currentQuestionIndex++;
-            document.getElementById('current-question-num').textContent = gameState.currentQuestionIndex;
+            // Update Progress UI
+            document.getElementById('current-question-num').textContent = gameState.currentQuestionIndex + 1;
+            const progressPercent = ((gameState.currentQuestionIndex + 1) / gameState.totalQuestions) * 100;
+            document.getElementById('game-progress-bar').style.width = `${progressPercent}%`;
 
-            // Update progress bar
-            const percent = (gameState.currentQuestionIndex / gameState.totalQuestions) * 100;
-            document.getElementById('game-progress-bar').style.width = `${percent}%`;
+            // Update Instruction & Equation
+            document.getElementById('question-instruction').textContent = data.instruction;
+            document.getElementById('equation-display').innerHTML = data.equationText;
 
-            // Generate data
-            const q = generateQuestion(gameState.currentLevel);
-            gameState.currentQuestionData = q;
+            // Render Visual Items Container
+            const visualBox = document.getElementById('visual-items-container');
+            visualBox.innerHTML = '';
 
-            // Render Instructions & Equation
-            document.getElementById('question-instruction').textContent = q.instruction;
-            document.getElementById('equation-display').innerHTML = q.equationText;
+            const hint = document.getElementById('counter-hint');
 
-            // Render Visual Container
-            renderVisualItems(q);
-
-            // Render Answer Buttons
-            renderAnswerButtons(q.options, q.correctAnswer);
-        }
-
-        function renderVisualItems(q) {
-            const container = document.getElementById('visual-items-container');
-            const hintText = document.getElementById('counter-hint');
-            container.innerHTML = '';
-
-            if (q.visualType === 'count') {
-                hintText.classList.remove('hidden');
-                for (let i = 1; i <= q.correctAnswer; i++) {
-                    const btn = document.createElement('button');
-                    btn.className = "w-12 h-12 md:w-14 md:h-14 bg-white rounded-2xl shadow-md border-2 border-slate-200 flex items-center justify-center text-2xl md:text-3xl transition transform active:scale-95 hover:border-brandGreen";
-                    btn.innerHTML = q.itemEmoji;
-                    btn.onclick = function() {
-                        this.classList.toggle('item-counted');
+            if (data.visualType === 'count') {
+                hint.classList.remove('hidden');
+                for (let i = 1; i <= data.correctAnswer; i++) {
+                    const item = document.createElement('button');
+                    item.className = 'w-12 h-12 md:w-14 md:h-14 bg-white rounded-2xl shadow border-2 border-slate-200 flex items-center justify-center text-2xl md:text-3xl hover:scale-110 active:scale-95 transition-all cursor-pointer';
+                    item.innerHTML = data.itemEmoji;
+                    item.onclick = function() {
                         playSound('count');
+                        this.classList.toggle('item-counted');
                     };
-                    container.appendChild(btn);
+                    visualBox.appendChild(item);
                 }
             } 
-            else if (q.visualType === 'add') {
-                hintText.classList.remove('hidden');
+            else if (data.visualType === 'add') {
+                hint.classList.remove('hidden');
                 // Group A
                 const groupA = document.createElement('div');
-                groupA.className = "flex flex-wrap gap-2 p-2 bg-yellow-50/80 rounded-xl border border-yellow-200 justify-center";
-                for (let i = 0; i < q.valA; i++) {
-                    const btn = document.createElement('button');
-                    btn.className = "w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl shadow border flex items-center justify-center text-2xl transition active:scale-95";
-                    btn.innerHTML = q.itemEmoji;
-                    btn.onclick = function() { this.classList.toggle('item-counted'); playSound('count'); };
-                    groupA.appendChild(btn);
+                groupA.className = 'flex flex-wrap gap-2 p-3 bg-amber-50 rounded-2xl border-2 border-amber-200 justify-center';
+                for (let i = 0; i < data.valA; i++) {
+                    const item = createTapItem(data.itemEmoji);
+                    groupA.appendChild(item);
                 }
 
-                // Plus Sign
                 const plusSign = document.createElement('div');
-                plusSign.className = "font-game text-3xl font-bold text-brandPink mx-1";
-                plusSign.textContent = "+";
+                plusSign.className = 'font-game text-3xl font-bold text-slate-400 mx-1';
+                plusSign.textContent = '+';
 
                 // Group B
                 const groupB = document.createElement('div');
-                groupB.className = "flex flex-wrap gap-2 p-2 bg-pink-50/80 rounded-xl border border-pink-200 justify-center";
-                for (let i = 0; i < q.valB; i++) {
-                    const btn = document.createElement('button');
-                    btn.className = "w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl shadow border flex items-center justify-center text-2xl transition active:scale-95";
-                    btn.innerHTML = q.itemEmoji;
-                    btn.onclick = function() { this.classList.toggle('item-counted'); playSound('count'); };
-                    groupB.appendChild(btn);
+                groupB.className = 'flex flex-wrap gap-2 p-3 bg-blue-50 rounded-2xl border-2 border-blue-200 justify-center';
+                for (let i = 0; i < data.valB; i++) {
+                    const item = createTapItem(data.itemEmoji);
+                    groupB.appendChild(item);
                 }
 
-                container.appendChild(groupA);
-                container.appendChild(plusSign);
-                container.appendChild(groupB);
+                visualBox.appendChild(groupA);
+                visualBox.appendChild(plusSign);
+                visualBox.appendChild(groupB);
             } 
-            else if (q.visualType === 'subtract') {
-                hintText.classList.remove('hidden');
-                const total = q.valA;
-                const crossed = q.subCrossCount;
+            else if (data.visualType === 'subtract') {
+                hint.classList.remove('hidden');
+                for (let i = 0; i < data.valA; i++) {
+                    const isCrossed = i >= (data.valA - data.subCrossCount);
+                    const item = document.createElement('button');
+                    item.className = `w-12 h-12 md:w-14 md:h-14 rounded-2xl shadow border-2 flex items-center justify-center text-2xl md:text-3xl relative ${isCrossed ? 'bg-red-50 border-red-200 opacity-60' : 'bg-white border-slate-200 hover:scale-110'} transition-all`;
+                    item.innerHTML = data.itemEmoji;
 
-                for (let i = 0; i < total; i++) {
-                    const btn = document.createElement('button');
-                    btn.className = "w-12 h-12 md:w-14 md:h-14 bg-white rounded-2xl shadow border-2 border-slate-200 flex items-center justify-center text-2xl relative transition active:scale-95";
-                    
-                    if (i < crossed) {
-                        // Crossed item
-                        btn.innerHTML = `${q.itemEmoji}<span class="absolute inset-0 flex items-center justify-center text-red-500 font-bold text-3xl select-none">❌</span>`;
-                        btn.classList.add('bg-red-50', 'opacity-60');
+                    if (isCrossed) {
+                        const crossOverlay = document.createElement('span');
+                        crossOverlay.className = 'absolute inset-0 flex items-center justify-center text-red-500 font-extrabold text-3xl select-none';
+                        crossOverlay.textContent = '❌';
+                        item.appendChild(crossOverlay);
                     } else {
-                        btn.innerHTML = q.itemEmoji;
-                        btn.onclick = function() { this.classList.toggle('item-counted'); playSound('count'); };
+                        item.onclick = function() {
+                            playSound('count');
+                            this.classList.toggle('item-counted');
+                        };
                     }
-                    container.appendChild(btn);
+                    visualBox.appendChild(item);
                 }
             } 
-            else if (q.visualType === 'ten-frame') {
-                hintText.classList.add('hidden');
-                // Display simple dot counter dots for numbers up to 20
-                const dotBox = document.createElement('div');
-                dotBox.className = "flex flex-wrap gap-2 justify-center max-w-xs";
-                for (let i = 0; i < q.valA; i++) {
+            else if (data.visualType === 'ten-frame') {
+                hint.classList.add('hidden');
+                // Render ten-frame visual dots
+                const container = document.createElement('div');
+                container.className = 'flex flex-wrap justify-center gap-2 max-w-md';
+                for (let i = 0; i < data.valA; i++) {
                     const dot = document.createElement('div');
-                    dot.className = "w-7 h-7 rounded-full bg-brandBlue border-2 border-sky-400 flex items-center justify-center text-xs font-bold text-white";
+                    dot.className = 'w-9 h-9 md:w-10 md:h-10 bg-brandBlue/30 border-2 border-brandBlue rounded-full flex items-center justify-center font-bold text-slate-700 text-sm';
                     dot.textContent = i + 1;
-                    dotBox.appendChild(dot);
+                    container.appendChild(dot);
                 }
-                container.appendChild(dotBox);
+                visualBox.appendChild(container);
             } 
             else {
-                hintText.classList.add('hidden');
-                container.innerHTML = `
-                    <div class="text-center p-4">
-                        <span class="text-5xl">🤔💭</span>
-                        <p class="font-game text-slate-500 text-sm mt-2 font-bold">Gunakan ketelitianmu untuk menemukan jawabannya!</p>
-                    </div>
-                `;
+                hint.classList.add('hidden');
+                // Level 5 Visual
+                const puzzleIcon = document.createElement('div');
+                puzzleIcon.className = 'text-6xl animate-pulse py-2';
+                puzzleIcon.textContent = '🧩';
+                visualBox.appendChild(puzzleIcon);
             }
-        }
 
-        function renderAnswerButtons(options, correctAnswer) {
+            // Render Answer Buttons
             const grid = document.getElementById('answers-grid');
             grid.innerHTML = '';
-
-            const colors = [
-                'bg-brandYellow hover:bg-amber-400 text-slate-800 border-amber-500',
-                'bg-brandPink hover:bg-pink-500 text-white border-pink-700',
-                'bg-brandBlue hover:bg-sky-400 text-slate-800 border-sky-500',
-                'bg-brandGreen hover:bg-emerald-500 text-white border-emerald-700'
-            ];
-
-            options.forEach((opt, idx) => {
+            data.options.forEach(option => {
                 const btn = document.createElement('button');
-                btn.className = `w-full py-4 md:py-5 rounded-2xl font-game text-2xl md:text-3xl font-extrabold border-b-4 ${colors[idx % colors.length]} btn-3d transition transform active:scale-95 flex items-center justify-center`;
-                btn.textContent = opt;
-                btn.onclick = function() {
-                    checkAnswer(opt, correctAnswer, btn);
-                };
+                btn.className = 'py-4 md:py-5 bg-white hover:bg-yellow-50 text-slate-800 border-4 border-slate-200 hover:border-brandYellow rounded-2xl font-game text-2xl md:text-3xl font-bold card-shadow btn-3d transition flex items-center justify-center';
+                btn.textContent = option;
+                btn.onclick = () => handleAnswerSelect(option, btn);
                 grid.appendChild(btn);
             });
         }
 
-        function checkAnswer(selectedOpt, correctOpt, btnElement) {
-            // Disable all option buttons temporarily
-            const allBtns = document.querySelectorAll('#answers-grid button');
-            allBtns.forEach(b => b.disabled = true);
-
-            if (selectedOpt === correctOpt) {
-                playSound('correct');
-                btnElement.classList.remove('bg-brandYellow', 'bg-brandPink', 'bg-brandBlue', 'bg-brandGreen');
-                btnElement.classList.add('bg-emerald-500', 'text-white', 'border-emerald-700', 'animate-bounce');
-                
-                gameState.correctAnswers++;
-                gameState.score += 10;
-
-                // Fire subtle confetti on correct
-                confetti({
-                    particleCount: 25,
-                    spread: 50,
-                    origin: { y: 0.7 }
-                });
-
-                setTimeout(() => {
-                    loadNextQuestion();
-                }, 1200);
-
-            } else {
-                playSound('wrong');
-                btnElement.classList.add('bg-red-500', 'text-white', 'border-red-700', 'animate-shake');
-
-                // Highlight correct one
-                allBtns.forEach(b => {
-                    if (parseInt(b.textContent) === correctOpt) {
-                        b.classList.add('ring-4', 'ring-emerald-400', 'scale-105');
-                    }
-                });
-
-                setTimeout(() => {
-                    loadNextQuestion();
-                }, 1600);
-            }
+        function createTapItem(emoji) {
+            const item = document.createElement('button');
+            item.className = 'w-11 h-11 md:w-12 md:h-12 bg-white rounded-xl shadow border-2 border-slate-200 flex items-center justify-center text-2xl hover:scale-110 active:scale-95 transition-all cursor-pointer';
+            item.innerHTML = emoji;
+            item.onclick = function() {
+                playSound('count');
+                this.classList.toggle('item-counted');
+            };
+            return item;
         }
 
-        /* --- LEVEL FINISH & STAR REWARDS --- */
-        function finishLevel() {
-            playSound('win');
+        function handleAnswerSelect(selectedOption, btnElement) {
+            const data = gameState.currentQuestionData;
+            const buttons = document.querySelectorAll('#answers-grid button');
+            buttons.forEach(b => b.disabled = true); // Disable further clicks
 
-            // Calculate stars based on accuracy
-            const accuracy = gameState.correctAnswers / gameState.totalQuestions;
-            let stars = 1;
-            if (accuracy >= 0.85) stars = 3;      // 7-8 correct
-            else if (accuracy >= 0.6) stars = 2; // 5-6 correct
+            if (selectedOption === data.correctAnswer) {
+                // CORRECT ANSWER
+                playSound('correct');
+                btnElement.classList.remove('bg-white', 'border-slate-200');
+                btnElement.classList.add('bg-emerald-500', 'text-white', 'border-emerald-700', 'animate-bounce');
+                gameState.correctAnswers++;
+                gameState.score += 10;
+            } else {
+                // WRONG ANSWER
+                playSound('wrong');
+                btnElement.classList.remove('bg-white', 'border-slate-200');
+                btnElement.classList.add('bg-rose-500', 'text-white', 'border-rose-700', 'animate-wiggle');
 
-            // Save max stars earned for level
-            if (stars > (gameState.starsEarnedPerLevel[gameState.currentLevel] || 0)) {
-                gameState.starsEarnedPerLevel[gameState.currentLevel] = stars;
+                // Highlight correct answer button
+                buttons.forEach(b => {
+                    if (parseInt(b.textContent) === data.correctAnswer) {
+                        b.classList.remove('bg-white', 'border-slate-200');
+                        b.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-800');
+                    }
+                });
             }
 
-            // Trigger Confetti
+            // Next Question Delay
+            setTimeout(() => {
+                gameState.currentQuestionIndex++;
+                if (gameState.currentQuestionIndex < gameState.totalQuestions) {
+                    loadQuestion();
+                } else {
+                    finishLevel();
+                }
+            }, 1400);
+        }
+
+        function finishLevel() {
+            playSound('win');
             confetti({
                 particleCount: 100,
                 spread: 70,
                 origin: { y: 0.6 }
             });
 
-            // Update Result Modal
+            // Calculate Stars Earned (3 Stars: 100%, 2 Stars: >= 75%, 1 Star: > 0)
+            const percentage = (gameState.correctAnswers / gameState.totalQuestions) * 100;
+            let stars = 0;
+            if (percentage >= 85) stars = 3;
+            else if (percentage >= 60) stars = 2;
+            else if (percentage > 0) stars = 1;
+
+            // Save level stars if higher
+            if (stars > (gameState.starsEarnedPerLevel[gameState.currentLevel] || 0)) {
+                gameState.starsEarnedPerLevel[gameState.currentLevel] = stars;
+            }
+
+            // Update Modal UI
             document.getElementById('res-correct-count').textContent = `${gameState.correctAnswers} / ${gameState.totalQuestions}`;
             document.getElementById('res-stars-count').textContent = `+${stars} ⭐`;
 
-            // Star icons display animation
-            const s1 = document.getElementById('res-star-1');
-            const s2 = document.getElementById('res-star-2');
-            const s3 = document.getElementById('res-star-3');
+            for (let i = 1; i <= 3; i++) {
+                const starEl = document.getElementById(`res-star-${i}`);
+                if (i <= stars) {
+                    starEl.className = 'fas fa-star text-amber-400 star-pop';
+                } else {
+                    starEl.className = 'fas fa-star text-slate-200';
+                }
+            }
 
-            [s1, s2, s3].forEach(s => s.className = "fas fa-star text-slate-200");
+            // Configure Next Level Button
+            const nextBtn = document.getElementById('btn-next-level');
+            if (gameState.currentLevel < 5) {
+                nextBtn.textContent = 'Lanjut Level Berikutnya 🚀';
+            } else {
+                nextBtn.textContent = 'Main Lagi Level Ini 🔄';
+            }
 
-            setTimeout(() => { if (stars >= 1) { s1.className = "fas fa-star text-amber-400 star-pop"; playSound('count'); } }, 300);
-            setTimeout(() => { if (stars >= 2) { s2.className = "fas fa-star text-amber-400 star-pop"; playSound('count'); } }, 600);
-            setTimeout(() => { if (stars >= 3) { s3.className = "fas fa-star text-amber-400 star-pop"; playSound('count'); } }, 900);
-
-            // Show Modal
             document.getElementById('modal-result').classList.remove('hidden');
         }
 
@@ -884,21 +864,19 @@
             if (gameState.currentLevel < 5) {
                 startLevel(gameState.currentLevel + 1);
             } else {
-                startLevel(1); // Cycle back to level 1
+                startLevel(5);
             }
         }
 
         function confirmExitLevel() {
             playSound('click');
-            if (confirm("Apakah kamu yakin ingin keluar ke menu utama?")) {
-                showScreen('screen-levels');
+            if (confirm('Apakah kamu yakin ingin keluar ke menu utama? Progress level ini belum tersimpan.')) {
+                goToLevelSelect();
             }
         }
 
-        // Initialize display on load
-        window.onload = function() {
-            updateStarsDisplay();
-        };
+        // Initialize display on startup
+        updateStarsDisplay();
     </script>
 </body>
 </html>
