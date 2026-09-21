@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Matematika Ceria - Kelas 1 SD</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Nunito for playful typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        nunito: ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        brandYellow: '#FFD166',
+                        brandPink: '#FF70A6',
+                        brandBlue: '#70D6FF',
+                        brandGreen: '#06D6A0',
+                        brandPurple: '#9B5DE5'
+                    },
+                    animation: {
+                        bounceSlow: 'bounce 2s infinite',
+                        wiggle: 'wiggle 0.5s ease-in-out infinite',
+                        pulseGlow: 'pulseGlow 1.5s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 15px rgba(255, 209, 102, 0.8)' },
+                            '50%': { boxShadow: '0 0 30px rgba(255, 112, 166, 0.9)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa 0%, #fff9c4 50%, #f3e5f5 100%);
+            min-height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .font-game {
+            font-family: 'Fredoka', cursive;
+        }
+
+        .btn-3d {
+            transition: all 0.1s ease;
+            box-shadow: 0px 8px 0px 0px rgba(0,0,0,0.2);
+        }
+
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0px 4px 0px 0px rgba(0,0,0,0.2);
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-counted {
+            transform: scale(1.15) rotate(10deg);
+            filter: drop-shadow(0 0 8px #06D6A0);
+            border: 3px solid #06D6A0;
+            background-color: #e6fffa;
+        }
+
+        /* Star rating animations */
+        .star-pop {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            80% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 antialiased selection:bg-brandPink selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="w-full bg-white/80 backdrop-blur-md border-b-4 border-yellow-300 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showScreen('screen-home')">
+                <div class="w-10 h-10 rounded-full bg-brandYellow flex items-center justify-center text-2xl shadow-inner">
+                    📐
+                </div>
+                <div>
+                    <h1 class="font-game text-xl md:text-2xl font-bold text-slate-800 leading-none">Matematika Ceria</h1>
+                    <span class="text-xs font-bold text-brandPink tracking-wide">KELAS 1 SD</span>
+                </div>
+            </div>
+
+            <!-- Header Controls & Status -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-yellow-100 border-2 border-yellow-400 px-3 py-1 rounded-full flex items-center space-x-1 font-game text-yellow-800 font-bold text-sm">
+                    <span>⭐</span>
+                    <span id="total-stars-display">0</span>
+                </div>
+                <button id="btn-sound" onclick="toggleSound()" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 border-2 border-slate-300 flex items-center justify-center text-slate-700 transition">
+                    <i class="fas fa-volume-up text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Container -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 flex flex-col justify-center items-center relative">
+
+        <!-- ================= SCREEN 1: HOME / AVATAR SELECTION ================= -->
+        <section id="screen-home" class="w-full max-w-md bg-white rounded-3xl p-6 md:p-8 card-shadow border-4 border-brandBlue text-center flex flex-col items-center">
+            <div class="w-20 h-20 bg-brandYellow/30 rounded-full flex items-center justify-center text-5xl mb-3 animate-bounceSlow">
+                🦁
+            </div>
+            <h2 class="font-game text-2xl md:text-3xl font-bold text-slate-800 mb-1">Halo Teman Kecil! 👋</h2>
+            <p class="text-slate-600 text-sm md:text-base mb-6 font-semibold">Pilih karakter favoritmu untuk memulai petualangan matematika!</p>
+
+            <!-- Character Selection -->
+            <div class="grid grid-cols-4 gap-3 w-full mb-6">
+                <button onclick="selectAvatar('🦁')" class="avatar-option p-3 rounded-2xl border-4 border-brandYellow bg-yellow-50 hover:scale-105 transition flex flex-col items-center">
+                    <span class="text-3xl mb-1">🦁</span>
+                    <span class="text-xs font-bold font-game text-slate-700">Leo</span>
+                </button>
+                <button onclick="selectAvatar('🐰')" class="avatar-option p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:scale-105 transition flex flex-col items-center">
+                    <span class="text-3xl mb-1">🐰</span>
+                    <span class="text-xs font-bold font-game text-slate-700">Mifi</span>
+                </button>
+                <button onclick="selectAvatar('🐱')" class="avatar-option p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:scale-105 transition flex flex-col items-center">
+                    <span class="text-3xl mb-1">🐱</span>
+                    <span class="text-xs font-bold font-game text-slate-700">Mimi</span>
+                </button>
+                <button onclick="selectAvatar('🐶')" class="avatar-option p-3 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:scale-105 transition flex flex-col items-center">
+                    <span class="text-3xl mb-1">🐶</span>
+                    <span class="text-xs font-bold font-game text-slate-700">Bobi</span>
+                </button>
+            </div>
+
+            <button onclick="goToLevelSelect()" class="w-full py-4 bg-brandGreen hover:bg-emerald-500 text-white font-game text-xl font-bold rounded-2xl border-b-4 border-emerald-700 btn-3d transition flex items-center justify-center space-x-2">
+                <span>Mulai Bermain</span>
+                <i class="fas fa-play text-lg"></i>
+            </button>
+        </section>
+
+        <!-- ================= SCREEN 2: LEVEL SELECT ================= -->
+        <section id="screen-levels" class="w-full hidden flex-col items-center">
+            <div class="text-center mb-6">
+                <h2 class="font-game text-3xl font-bold text-slate-800">Pilih Level Petualangan</h2>
+                <p class="text-slate-600 font-semibold text-sm md:text-base">Selesaikan setiap level untuk mendapat bintang!</p>
+            </div>
+
+            <!-- Levels Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl mb-6">
+
+                <!-- Level 1 -->
+                <div onclick="startLevel(1)" class="bg-white rounded-3xl p-5 border-4 border-brandYellow card-shadow cursor-pointer hover:scale-[1.02] transition flex items-center space-x-4 relative overflow-hidden group">
+                    <div class="w-16 h-16 rounded-2xl bg-yellow-100 border-2 border-yellow-300 flex items-center justify-center font-game font-bold text-2xl text-yellow-700 shrink-0">
+                        1
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-game font-bold text-lg text-slate-800">Membilang Benda</h3>
+                            <div class="stars-container flex text-amber-400 text-sm" id="stars-level-1">
+                                <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 font-semibold mb-1">Belajar menghitung jumlah benda 1 sampai 10</p>
+                        <span class="inline-block bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Angka 1 - 10</span>
+                    </div>
+                </div>
+
+                <!-- Level 2 -->
+                <div id="card-level-2" onclick="startLevel(2)" class="bg-white rounded-3xl p-5 border-4 border-brandPink card-shadow cursor-pointer hover:scale-[1.02] transition flex items-center space-x-4 relative overflow-hidden group">
+                    <div class="w-16 h-16 rounded-2xl bg-pink-100 border-2 border-pink-300 flex items-center justify-center font-game font-bold text-2xl text-pink-700 shrink-0">
+                        2
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-game font-bold text-lg text-slate-800">Penjumlahan Sederhana</h3>
+                            <div class="stars-container flex text-amber-400 text-sm" id="stars-level-2">
+                                <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 font-semibold mb-1">Menambahkan kelompok benda (Hasil &le; 10)</p>
+                        <span class="inline-block bg-pink-100 text-pink-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Penjumlahan &le; 10</span>
+                    </div>
+                </div>
+
+                <!-- Level 3 -->
+                <div id="card-level-3" onclick="startLevel(3)" class="bg-white rounded-3xl p-5 border-4 border-brandBlue card-shadow cursor-pointer hover:scale-[1.02] transition flex items-center space-x-4 relative overflow-hidden group">
+                    <div class="w-16 h-16 rounded-2xl bg-sky-100 border-2 border-sky-300 flex items-center justify-center font-game font-bold text-2xl text-sky-700 shrink-0">
+                        3
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-game font-bold text-lg text-slate-800">Pengurangan Benda</h3>
+                            <div class="stars-container flex text-amber-400 text-sm" id="stars-level-3">
+                                <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 font-semibold mb-1">Menghitung sisa benda yang dicoret (1 - 10)</p>
+                        <span class="inline-block bg-sky-100 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Pengurangan &le; 10</span>
+                    </div>
+                </div>
+
+                <!-- Level 4 -->
+                <div id="card-level-4" onclick="startLevel(4)" class="bg-white rounded-3xl p-5 border-4 border-brandGreen card-shadow cursor-pointer hover:scale-[1.02] transition flex items-center space-x-4 relative overflow-hidden group">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-100 border-2 border-emerald-300 flex items-center justify-center font-game font-bold text-2xl text-emerald-700 shrink-0">
+                        4
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-game font-bold text-lg text-slate-800">Tambah & Kurang Hingga 20</h3>
+                            <div class="stars-container flex text-amber-400 text-sm" id="stars-level-4">
+                                <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 font-semibold mb-1">Operasi hitung angka lebih besar (1 - 20)</p>
+                        <span class="inline-block bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Angka &le; 20</span>
+                    </div>
+                </div>
+
+                <!-- Level 5 -->
+                <div id="card-level-5" onclick="startLevel(5)" class="bg-white rounded-3xl p-5 border-4 border-brandPurple card-shadow cursor-pointer hover:scale-[1.02] transition flex items-center space-x-4 relative overflow-hidden group md:col-span-2">
+                    <div class="w-16 h-16 rounded-2xl bg-purple-100 border-2 border-purple-300 flex items-center justify-center font-game font-bold text-2xl text-purple-700 shrink-0">
+                        5
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-game font-bold text-lg text-slate-800">Tantangan Cari Angka Hilang 🧩</h3>
+                            <div class="stars-container flex text-amber-400 text-sm" id="stars-level-5">
+                                <i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 font-semibold mb-1">Temukan angka rahasia dalam titik-titik (misal: 4 + ? = 9)</p>
+                        <span class="inline-block bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Master Matematika</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Action Buttons -->
+            <div class="flex space-x-4">
+                <button onclick="showScreen('screen-home')" class="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-game font-bold rounded-2xl transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Kembali
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= SCREEN 3: GAMEPLAY SCREEN ================= -->
+        <section id="screen-game" class="w-full hidden flex-col items-center">
+            
+            <!-- Game Top Header & Progress -->
+            <div class="w-full max-w-2xl bg-white rounded-2xl p-4 mb-4 card-shadow flex items-center justify-between border-2 border-slate-200">
+                <button onclick="confirmExitLevel()" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+
+                <!-- Progress Bar -->
+                <div class="flex-grow mx-4">
+                    <div class="flex justify-between items-center mb-1 font-game text-xs text-slate-600 font-bold">
+                        <span id="level-title-display">Level 1</span>
+                        <span>Soal <span id="current-question-num">1</span> dari <span id="total-questions-num">8</span></span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                        <div id="game-progress-bar" class="bg-gradient-to-r from-brandYellow to-brandGreen h-full rounded-full transition-all duration-300" style="width: 12.5%;"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-1 font-game font-bold text-amber-500 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
+                    <span class="text-base">⭐</span>
+                    <span id="session-stars">0</span>
+                </div>
+            </div>
+
+            <!-- Main Question Card -->
+            <div class="w-full max-w-2xl bg-white rounded-3xl p-6 md:p-8 card-shadow border-4 border-brandBlue flex flex-col items-center relative overflow-hidden">
+                
+                <!-- Helper Mascot Speech Bubble -->
+                <div class="w-full flex items-center space-x-3 mb-4 bg-sky-50 p-3 rounded-2xl border border-sky-200">
+                    <span id="game-mascot-icon" class="text-4xl animate-bounceSlow">🦁</span>
+                    <p id="question-instruction" class="font-game text-slate-700 text-sm md:text-base font-bold leading-tight">
+                        Hitung ada berapa banyak apel di bawah ini!
+                    </p>
+                </div>
+
+                <!-- Visual Items Container (Interactive Object Counter) -->
+                <div id="visual-items-container" class="w-full min-h-[160px] bg-slate-50 rounded-2xl p-4 border-2 border-dashed border-slate-300 flex flex-wrap items-center justify-center gap-3 my-2 transition-all">
+                    <!-- Dynamic SVG / Emoji items generated here -->
+                </div>
+
+                <!-- Equation Text Display (e.g., 3 + 2 = ?) -->
+                <div id="equation-display" class="font-game text-3xl md:text-5xl font-extrabold text-slate-800 my-4 tracking-wide text-center">
+                    3 + 2 = <span class="text-brandPink animate-pulse">?</span>
+                </div>
+
+                <!-- Tap Hint -->
+                <p id="counter-hint" class="text-xs text-emerald-600 font-bold mb-4 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+                    <i class="fas fa-hand-pointer text-xs"></i> Tips: Kamu bisa mengetuk gambar untuk membantumu menghitung!
+                </p>
+
+                <!-- Multiple Choice Answer Grid -->
+                <div id="answers-grid" class="grid grid-cols-2 gap-4 w-full mt-2">
+                    <!-- 4 Option Buttons generated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODAL: LEVEL COMPLETE / RESULT ================= -->
+        <div id="modal-result" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 card-shadow border-4 border-brandYellow text-center transform transition-all scale-100 flex flex-col items-center">
+                
+                <div class="w-24 h-24 rounded-full bg-yellow-100 border-4 border-yellow-300 flex items-center justify-center text-6xl mb-2 -mt-16 card-shadow">
+                    🏆
+                </div>
+
+                <h3 class="font-game text-3xl font-bold text-slate-800 mb-1">Hebat Sekali! 🎉</h3>
+                <p class="text-slate-600 font-semibold text-sm mb-4">Kamu berhasil menyelesaikan tantangan!</p>
+
+                <!-- Stars Earned -->
+                <div class="flex justify-center space-x-3 text-5xl text-amber-400 mb-6" id="result-stars flex">
+                    <i id="res-star-1" class="fas fa-star text-slate-200"></i>
+                    <i id="res-star-2" class="fas fa-star text-slate-200"></i>
+                    <i id="res-star-3" class="fas fa-star text-slate-200"></i>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="w-full bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-200 grid grid-cols-2 gap-2 text-center font-game">
+                    <div class="p-2">
+                        <span class="block text-xs text-slate-500 font-bold">Jawaban Benar</span>
+                        <span id="res-correct-count" class="text-xl font-bold text-emerald-600">8 / 8</span>
+                    </div>
+                    <div class="p-2">
+                        <span class="block text-xs text-slate-500 font-bold">Bintang Didapat</span>
+                        <span id="res-stars-count" class="text-xl font-bold text-amber-500">+3 ⭐</span>
+                    </div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="flex flex-col space-y-3 w-full">
+                    <button onclick="nextLevelOrRepeat()" class="w-full py-3.5 bg-brandGreen hover:bg-emerald-500 text-white font-game text-lg font-bold rounded-2xl border-b-4 border-emerald-700 btn-3d transition">
+                        Lanjut Level Berikutnya 🚀
+                    </button>
+                    <button onclick="goToLevelSelect()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-game font-bold rounded-2xl transition">
+                        Pilih Level Lain
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        /* --- GAME STATE MANAGEMENT --- */
+        const gameState = {
+            selectedAvatar: '🦁',
+            soundEnabled: true,
+            currentLevel: 1,
+            currentQuestionIndex: 0,
+            totalQuestions: 8,
+            score: 0,
+            correctAnswers: 0,
+            starsEarnedPerLevel: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+            currentQuestionData: null
+        };
+
+        // Item Emojis used for visual counting
+        const emojiItems = ['🍎', '⭐️', '🎈', '🚗', '🐱', '🐸', '🌼', '🍬', '🦆', '🍓'];
+
+        /* --- AUDIO SYNTHESIZER (Web Audio API) --- */
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!gameState.soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'count') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'correct') {
+                // Happy chord fanfare
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.15, now + idx * 0.08);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.2);
+                    o.start(now + idx * 0.08);
+                    o.stop(now + idx * 0.08 + 0.2);
+                });
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(150, now + 0.25);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'win') {
+                // Victory Fanfare
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, idx) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.2, now + idx * 0.12);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.3);
+                    o.start(now + idx * 0.12);
+                    o.stop(now + idx * 0.12 + 0.3);
+                });
+            }
+        }
+
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            const btn = document.getElementById('btn-sound');
+            if (gameState.soundEnabled) {
+                btn.innerHTML = '<i class="fas fa-volume-up text-lg"></i>';
+                playSound('click');
+            } else {
+                btn.innerHTML = '<i class="fas fa-volume-mute text-lg text-slate-400"></i>';
+            }
+        }
+
+        /* --- UI NAVIGATION --- */
+        function showScreen(screenId) {
+            playSound('click');
+            document.getElementById('screen-home').classList.add('hidden');
+            document.getElementById('screen-levels').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+
+            const target = document.getElementById(screenId);
+            target.classList.remove('hidden');
+            if (screenId === 'screen-levels' || screenId === 'screen-game') {
+                target.classList.add('flex');
+            }
+        }
+
+        function selectAvatar(emoji) {
+            playSound('click');
+            gameState.selectedAvatar = emoji;
+            document.querySelectorAll('.avatar-option').forEach(btn => {
+                btn.classList.remove('border-brandYellow', 'bg-yellow-50');
+                btn.classList.add('border-slate-200', 'bg-slate-50');
+            });
+
+            // Highlight chosen avatar
+            event.currentTarget.classList.remove('border-slate-200', 'bg-slate-50');
+            event.currentTarget.classList.add('border-brandYellow', 'bg-yellow-50');
+
+            document.getElementById('game-mascot-icon').textContent = emoji;
+        }
+
+        function goToLevelSelect() {
+            updateStarsDisplay();
+            showScreen('screen-levels');
+        }
+
+        function updateStarsDisplay() {
+            let total = 0;
+            for (let lvl = 1; lvl <= 5; lvl++) {
+                const stars = gameState.starsEarnedPerLevel[lvl] || 0;
+                total += stars;
+                const container = document.getElementById(`stars-level-${lvl}`);
+                if (container) {
+                    let html = '';
+                    for (let i = 1; i <= 3; i++) {
+                        if (i <= stars) {
+                            html += '<i class="fas fa-star text-amber-400"></i>';
+                        } else {
+                            html += '<i class="far fa-star text-slate-300"></i>';
+                        }
+                    }
+                    container.innerHTML = html;
+                }
+            }
+            document.getElementById('total-stars-display').textContent = total;
+        }
+
+        /* --- QUESTION GENERATION LOGIC --- */
+        function generateQuestion(level) {
+            const itemEmoji = emojiItems[Math.floor(Math.random() * emojiItems.length)];
+            let instruction = '';
+            let valA = 0;
+            let valB = 0;
+            let correctAnswer = 0;
+            let equationText = '';
+            let visualType = ''; // 'count', 'add', 'subtract', 'none'
+            let subCrossCount = 0;
+
+            if (level === 1) {
+                // LEVEL 1: Membilang (1 - 10)
+                correctAnswer = Math.floor(Math.random() * 10) + 1; // 1 - 10
+                instruction = `Ada berapa banyak ${getEmojiName(itemEmoji)} di bawah ini? Sentuh untuk menghitung!`;
+                equationText = `Berapa jumlahnya? = <span class="text-brandPink animate-pulse">?</span>`;
+                visualType = 'count';
+            } 
+            else if (level === 2) {
+                // LEVEL 2: Penjumlahan Sederhana (Hasil <= 10)
+                valA = Math.floor(Math.random() * 5) + 1; // 1-5
+                valB = Math.floor(Math.random() * 5) + 1; // 1-5
+                correctAnswer = valA + valB;
+                instruction = `Hitung semua ${getEmojiName(itemEmoji)} di dua kelompok lalu jumlahkan!`;
+                equationText = `${valA} + ${valB} = <span class="text-brandPink animate-pulse">?</span>`;
+                visualType = 'add';
+            } 
+            else if (level === 3) {
+                // LEVEL 3: Pengurangan Sederhana (1 - 10)
+                valA = Math.floor(Math.random() * 6) + 4; // 4 - 9
+                subCrossCount = Math.floor(Math.random() * (valA - 1)) + 1; // 1 to valA-1
+                correctAnswer = valA - subCrossCount;
+                instruction = `Ada ${valA} ${getEmojiName(itemEmoji)}, dicoret ❌ sebanyak ${subCrossCount}. Berapa sisanya?`;
+                equationText = `${valA} - ${subCrossCount} = <span class="text-brandPink animate-pulse">?</span>`;
+                visualType = 'subtract';
+            } 
+            else if (level === 4) {
+                // LEVEL 4: Penjumlahan & Pengurangan (Hingga 20)
+                const isAddition = Math.random() > 0.5;
+                if (isAddition) {
+                    valA = Math.floor(Math.random() * 10) + 5; // 5 - 14
+                    valB = Math.floor(Math.random() * 6) + 1;  // 1 - 6
+                    correctAnswer = valA + valB;
+                    instruction = `Hitung penjumlahan angka di bawah ini!`;
+                    equationText = `${valA} + ${valB} = <span class="text-brandPink animate-pulse">?</span>`;
+                } else {
+                    valA = Math.floor(Math.random() * 10) + 10; // 10 - 19
+                    valB = Math.floor(Math.random() * 8) + 1;   // 1 - 8
+                    correctAnswer = valA - valB;
+                    instruction = `Hitung pengurangan angka di bawah ini!`;
+                    equationText = `${valA} - ${valB} = <span class="text-brandPink animate-pulse">?</span>`;
+                }
+                visualType = 'ten-frame'; // Optional visual helper
+            } 
+            else if (level === 5) {
+                // LEVEL 5: Tantangan Angka Hilang / Missing Number (e.g. 4 + ? = 9 or 12 - ? = 7)
+                const isAddition = Math.random() > 0.4;
+                if (isAddition) {
+                    const total = Math.floor(Math.random() * 10) + 6; // 6 - 15
+                    valA = Math.floor(Math.random() * (total - 2)) + 1;
+                    correctAnswer = total - valA; // The missing number
+                    instruction = `Cari angka yang tepat untuk mengisi tanda tanya ( ❓ ) !`;
+                    equationText = `${valA} + <span class="text-brandPurple font-extrabold underline">?</span> = ${total}`;
+                } else {
+                    valA = Math.floor(Math.random() * 10) + 8; // 8 - 17
+                    correctAnswer = Math.floor(Math.random() * 5) + 2;
+                    const result = valA - correctAnswer;
+                    instruction = `Cari angka yang tepat untuk mengisi tanda tanya ( ❓ ) !`;
+                    equationText = `${valA} - <span class="text-brandPurple font-extrabold underline">?</span> = ${result}`;
+                }
+                visualType = 'none';
+            }
+
+            // Generate 4 Multiple Choice Options (1 correct, 3 distractors)
+            const options = new Set();
+            options.add(correctAnswer);
+
+            while (options.size < 4) {
+                let offset = (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+                let wrongVal = correctAnswer + offset;
+                if (wrongVal >= 0 && wrongVal <= 25 && wrongVal !== correctAnswer) {
+                    options.add(wrongVal);
+                }
+            }
+
+            const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+
+            return {
+                level,
+                itemEmoji,
+                instruction,
+                valA,
+                valB,
+                subCrossCount,
+                correctAnswer,
+                equationText,
+                visualType,
+                options: shuffledOptions
+            };
+        }
+
+        function getEmojiName(emoji) {
+            const names = {
+                '🍎': 'apel', '⭐️': 'bintang', '🎈': 'balon', '🚗': 'mobil',
+                '🐱': 'kucing', '🐸': 'katak', '🌼': 'bunga', '🍬': 'permen',
+                '🦆': 'bebek', '🍓': 'stroberi'
+            };
+            return names[emoji] || 'benda';
+        }
+
+        /* --- GAMEPLAY FLOW --- */
+        function startLevel(lvl) {
+            gameState.currentLevel = lvl;
+            gameState.currentQuestionIndex = 0;
+            gameState.correctAnswers = 0;
+            gameState.score = 0;
+
+            document.getElementById('level-title-display').textContent = `Level ${lvl}`;
+            document.getElementById('total-questions-num').textContent = gameState.totalQuestions;
+            document.getElementById('session-stars').textContent = '0';
+
+            showScreen('screen-game');
+            loadNextQuestion();
+        }
+
+        function loadNextQuestion() {
+            if (gameState.currentQuestionIndex >= gameState.totalQuestions) {
+                finishLevel();
+                return;
+            }
+
+            gameState.currentQuestionIndex++;
+            document.getElementById('current-question-num').textContent = gameState.currentQuestionIndex;
+
+            // Update progress bar
+            const percent = (gameState.currentQuestionIndex / gameState.totalQuestions) * 100;
+            document.getElementById('game-progress-bar').style.width = `${percent}%`;
+
+            // Generate data
+            const q = generateQuestion(gameState.currentLevel);
+            gameState.currentQuestionData = q;
+
+            // Render Instructions & Equation
+            document.getElementById('question-instruction').textContent = q.instruction;
+            document.getElementById('equation-display').innerHTML = q.equationText;
+
+            // Render Visual Container
+            renderVisualItems(q);
+
+            // Render Answer Buttons
+            renderAnswerButtons(q.options, q.correctAnswer);
+        }
+
+        function renderVisualItems(q) {
+            const container = document.getElementById('visual-items-container');
+            const hintText = document.getElementById('counter-hint');
+            container.innerHTML = '';
+
+            if (q.visualType === 'count') {
+                hintText.classList.remove('hidden');
+                for (let i = 1; i <= q.correctAnswer; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = "w-12 h-12 md:w-14 md:h-14 bg-white rounded-2xl shadow-md border-2 border-slate-200 flex items-center justify-center text-2xl md:text-3xl transition transform active:scale-95 hover:border-brandGreen";
+                    btn.innerHTML = q.itemEmoji;
+                    btn.onclick = function() {
+                        this.classList.toggle('item-counted');
+                        playSound('count');
+                    };
+                    container.appendChild(btn);
+                }
+            } 
+            else if (q.visualType === 'add') {
+                hintText.classList.remove('hidden');
+                // Group A
+                const groupA = document.createElement('div');
+                groupA.className = "flex flex-wrap gap-2 p-2 bg-yellow-50/80 rounded-xl border border-yellow-200 justify-center";
+                for (let i = 0; i < q.valA; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = "w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl shadow border flex items-center justify-center text-2xl transition active:scale-95";
+                    btn.innerHTML = q.itemEmoji;
+                    btn.onclick = function() { this.classList.toggle('item-counted'); playSound('count'); };
+                    groupA.appendChild(btn);
+                }
+
+                // Plus Sign
+                const plusSign = document.createElement('div');
+                plusSign.className = "font-game text-3xl font-bold text-brandPink mx-1";
+                plusSign.textContent = "+";
+
+                // Group B
+                const groupB = document.createElement('div');
+                groupB.className = "flex flex-wrap gap-2 p-2 bg-pink-50/80 rounded-xl border border-pink-200 justify-center";
+                for (let i = 0; i < q.valB; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = "w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl shadow border flex items-center justify-center text-2xl transition active:scale-95";
+                    btn.innerHTML = q.itemEmoji;
+                    btn.onclick = function() { this.classList.toggle('item-counted'); playSound('count'); };
+                    groupB.appendChild(btn);
+                }
+
+                container.appendChild(groupA);
+                container.appendChild(plusSign);
+                container.appendChild(groupB);
+            } 
+            else if (q.visualType === 'subtract') {
+                hintText.classList.remove('hidden');
+                const total = q.valA;
+                const crossed = q.subCrossCount;
+
+                for (let i = 0; i < total; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = "w-12 h-12 md:w-14 md:h-14 bg-white rounded-2xl shadow border-2 border-slate-200 flex items-center justify-center text-2xl relative transition active:scale-95";
+                    
+                    if (i < crossed) {
+                        // Crossed item
+                        btn.innerHTML = `${q.itemEmoji}<span class="absolute inset-0 flex items-center justify-center text-red-500 font-bold text-3xl select-none">❌</span>`;
+                        btn.classList.add('bg-red-50', 'opacity-60');
+                    } else {
+                        btn.innerHTML = q.itemEmoji;
+                        btn.onclick = function() { this.classList.toggle('item-counted'); playSound('count'); };
+                    }
+                    container.appendChild(btn);
+                }
+            } 
+            else if (q.visualType === 'ten-frame') {
+                hintText.classList.add('hidden');
+                // Display simple dot counter dots for numbers up to 20
+                const dotBox = document.createElement('div');
+                dotBox.className = "flex flex-wrap gap-2 justify-center max-w-xs";
+                for (let i = 0; i < q.valA; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = "w-7 h-7 rounded-full bg-brandBlue border-2 border-sky-400 flex items-center justify-center text-xs font-bold text-white";
+                    dot.textContent = i + 1;
+                    dotBox.appendChild(dot);
+                }
+                container.appendChild(dotBox);
+            } 
+            else {
+                hintText.classList.add('hidden');
+                container.innerHTML = `
+                    <div class="text-center p-4">
+                        <span class="text-5xl">🤔💭</span>
+                        <p class="font-game text-slate-500 text-sm mt-2 font-bold">Gunakan ketelitianmu untuk menemukan jawabannya!</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderAnswerButtons(options, correctAnswer) {
+            const grid = document.getElementById('answers-grid');
+            grid.innerHTML = '';
+
+            const colors = [
+                'bg-brandYellow hover:bg-amber-400 text-slate-800 border-amber-500',
+                'bg-brandPink hover:bg-pink-500 text-white border-pink-700',
+                'bg-brandBlue hover:bg-sky-400 text-slate-800 border-sky-500',
+                'bg-brandGreen hover:bg-emerald-500 text-white border-emerald-700'
+            ];
+
+            options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full py-4 md:py-5 rounded-2xl font-game text-2xl md:text-3xl font-extrabold border-b-4 ${colors[idx % colors.length]} btn-3d transition transform active:scale-95 flex items-center justify-center`;
+                btn.textContent = opt;
+                btn.onclick = function() {
+                    checkAnswer(opt, correctAnswer, btn);
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedOpt, correctOpt, btnElement) {
+            // Disable all option buttons temporarily
+            const allBtns = document.querySelectorAll('#answers-grid button');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (selectedOpt === correctOpt) {
+                playSound('correct');
+                btnElement.classList.remove('bg-brandYellow', 'bg-brandPink', 'bg-brandBlue', 'bg-brandGreen');
+                btnElement.classList.add('bg-emerald-500', 'text-white', 'border-emerald-700', 'animate-bounce');
+                
+                gameState.correctAnswers++;
+                gameState.score += 10;
+
+                // Fire subtle confetti on correct
+                confetti({
+                    particleCount: 25,
+                    spread: 50,
+                    origin: { y: 0.7 }
+                });
+
+                setTimeout(() => {
+                    loadNextQuestion();
+                }, 1200);
+
+            } else {
+                playSound('wrong');
+                btnElement.classList.add('bg-red-500', 'text-white', 'border-red-700', 'animate-shake');
+
+                // Highlight correct one
+                allBtns.forEach(b => {
+                    if (parseInt(b.textContent) === correctOpt) {
+                        b.classList.add('ring-4', 'ring-emerald-400', 'scale-105');
+                    }
+                });
+
+                setTimeout(() => {
+                    loadNextQuestion();
+                }, 1600);
+            }
+        }
+
+        /* --- LEVEL FINISH & STAR REWARDS --- */
+        function finishLevel() {
+            playSound('win');
+
+            // Calculate stars based on accuracy
+            const accuracy = gameState.correctAnswers / gameState.totalQuestions;
+            let stars = 1;
+            if (accuracy >= 0.85) stars = 3;      // 7-8 correct
+            else if (accuracy >= 0.6) stars = 2; // 5-6 correct
+
+            // Save max stars earned for level
+            if (stars > (gameState.starsEarnedPerLevel[gameState.currentLevel] || 0)) {
+                gameState.starsEarnedPerLevel[gameState.currentLevel] = stars;
+            }
+
+            // Trigger Confetti
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            // Update Result Modal
+            document.getElementById('res-correct-count').textContent = `${gameState.correctAnswers} / ${gameState.totalQuestions}`;
+            document.getElementById('res-stars-count').textContent = `+${stars} ⭐`;
+
+            // Star icons display animation
+            const s1 = document.getElementById('res-star-1');
+            const s2 = document.getElementById('res-star-2');
+            const s3 = document.getElementById('res-star-3');
+
+            [s1, s2, s3].forEach(s => s.className = "fas fa-star text-slate-200");
+
+            setTimeout(() => { if (stars >= 1) { s1.className = "fas fa-star text-amber-400 star-pop"; playSound('count'); } }, 300);
+            setTimeout(() => { if (stars >= 2) { s2.className = "fas fa-star text-amber-400 star-pop"; playSound('count'); } }, 600);
+            setTimeout(() => { if (stars >= 3) { s3.className = "fas fa-star text-amber-400 star-pop"; playSound('count'); } }, 900);
+
+            // Show Modal
+            document.getElementById('modal-result').classList.remove('hidden');
+        }
+
+        function nextLevelOrRepeat() {
+            document.getElementById('modal-result').classList.add('hidden');
+            if (gameState.currentLevel < 5) {
+                startLevel(gameState.currentLevel + 1);
+            } else {
+                startLevel(1); // Cycle back to level 1
+            }
+        }
+
+        function confirmExitLevel() {
+            playSound('click');
+            if (confirm("Apakah kamu yakin ingin keluar ke menu utama?")) {
+                showScreen('screen-levels');
+            }
+        }
+
+        // Initialize display on load
+        window.onload = function() {
+            updateStarsDisplay();
+        };
+    </script>
+</body>
+</html>
